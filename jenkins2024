@@ -1,0 +1,27 @@
+node {
+    //def mavenHome=tool name: 'maven 3.9.6'
+    def mavenHome=tool name: 'maven 3.9.6'
+    stage ('checkout') 
+    {
+        git branch: 'development', credentialsId: 'bd4f01bc-e1ea-478e-bcdb-05b360afcee3', url: 'https://github.com/ibmprivate-limited/maven-web-application.git'
+    }
+    stage ('bulid') 
+    {
+        sh "${mavenHome}/bin/mvn clean package"
+    }
+    stage ('testing') 
+    {
+        sh "${mavenHome}/bin/mvn sonar:sonar"
+    }
+    stage ('artifact') 
+    {
+        sh "${mavenHome}/bin/mvn clean deploy"
+    }
+    stage ('deploy') 
+    {
+     sshagent(['cd6cd1e3-430a-44e9-a036-7b4b37139daf']) {
+    // some block
+    "scp -o StrictHostKeyChecking=no target/maven-web-application.war ec2-user@172.31.13.143:/opt/apache-tomcat-9.0.85/webapps"
+}   
+    }
+}
